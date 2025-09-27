@@ -18,11 +18,15 @@ DEFAULT_AGENT_ORDER: Tuple[str, ...] = (
 PROVIDER_ENV_VARS: Dict[str, str] = {
     "openai": "OPENAI_API_KEY",
     "grok": "GROK_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "google": "GOOGLE_API_KEY",
 }
 
 PROVIDER_DEPENDENCIES: Dict[str, Tuple[str, ...]] = {
     "openai": ("requests",),
     "grok": ("requests",),
+    "anthropic": ("anthropic",),
+    "google": ("google-generativeai",),
 }
 
 OFFLINE_AGENT_RESPONSES: Dict[str, Dict[str, Any]] = {
