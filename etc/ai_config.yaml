@@ -6,6 +6,7 @@ order:
   - triage
   - enricher
   - correlator
+  - responder
 agents:
   investigator:
     provider: openai
@@ -31,3 +32,17 @@ agents:
     prompt: |
       Correlate the alert with historical events, highlighting related incident IDs or tactics.
       Return JSON keys correlations and notes. Data: {data}
+  responder:
+    provider: openai
+    model: gpt-4o
+    prompt: |
+      Provide an incident response action plan that aligns with organisational playbooks.
+      Return JSON with keys actions (list of objects with type, reason, and any parameters)
+      and policy (string describing safeguards). Data: {data}
+actions:
+  notify:
+    channel: security_ops
+  create_ticket:
+    system: jira
+  isolate_endpoint:
+    enabled: false

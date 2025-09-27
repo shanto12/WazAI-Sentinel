@@ -6,7 +6,21 @@ from typing import Any, Dict
 
 from .base import Agent, AgentContext
 from .clients import APIClientError, build_client
-from langchain_core.prompts import PromptTemplate
+try:
+    from langchain_core.prompts import PromptTemplate
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    class PromptTemplate:  # type: ignore[too-few-public-methods]
+        """Lightweight stand-in for :class:`langchain` prompt templates."""
+
+        def __init__(self, template: str) -> None:
+            self.template = template
+
+        @classmethod
+        def from_template(cls, template: str) -> "PromptTemplate":
+            return cls(template)
+
+        def format(self, **kwargs: str) -> str:
+            return self.template.format(**kwargs)
 
 
 class BaseAIChainAgent:
@@ -94,6 +108,15 @@ class CorrelatorAgent(BaseAIChainAgent):
     )
 
 
+class ResponderAgent(BaseAIChainAgent):
+    name = "responder"
+    prompt_template = (
+        "Using the investigation, triage, enrichment, and correlation results, "
+        "recommend concrete incident response actions. Respond in JSON with keys "
+        "actions (list of objects with type, reason, and parameters) and policy (string)."
+    )
+
+
 class Investigator(InvestigatorAgent, Agent):
     ...
 
@@ -110,9 +133,14 @@ class Correlator(CorrelatorAgent, Agent):
     ...
 
 
+class Responder(ResponderAgent, Agent):
+    ...
+
+
 AGENT_REGISTRY = {
     "investigator": Investigator,
     "triage": Triage,
     "enricher": Enricher,
     "correlator": Correlator,
+    "responder": Responder,
 }

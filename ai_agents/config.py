@@ -5,7 +5,10 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-import yaml
+try:
+    import yaml
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    yaml = None
 
 DEFAULT_CONFIG_PATH = Path(os.getenv("WAZAI_AI_CONFIG", "etc/ai_config.yaml"))
 
@@ -27,6 +30,9 @@ def load_ai_config(config_path: os.PathLike | str | None = None) -> Dict[str, An
     """
     path = Path(config_path or DEFAULT_CONFIG_PATH)
     if not path.exists():
+        return {}
+
+    if yaml is None:
         return {}
 
     try:

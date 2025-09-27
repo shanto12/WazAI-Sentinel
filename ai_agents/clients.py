@@ -4,7 +4,10 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Optional
 
-import requests
+try:
+    import requests
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    requests = None
 
 
 class APIClientError(RuntimeError):
@@ -31,6 +34,8 @@ class OpenAIClient:
             ],
             "temperature": temperature,
         }
+        if requests is None:
+            raise APIClientError("The 'requests' package is required for OpenAI integration.")
         response = requests.post(
             self.api_url,
             json=payload,
@@ -65,6 +70,8 @@ class GrokClient:
             ],
             "temperature": temperature,
         }
+        if requests is None:
+            raise APIClientError("The 'requests' package is required for Grok integration.")
         response = requests.post(
             self.api_url,
             json=payload,

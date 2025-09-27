@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Iterable, List
+import json
+from collections.abc import Iterable
+from typing import Any, Dict, List
 
 from .agents import AGENT_REGISTRY
 from .base import AgentContext
+from .actions import ActionExecutor
 from .clients import APIClientError
 
 LOGGER = logging.getLogger("wazai.ai")
@@ -33,6 +36,7 @@ class SupervisorAgent:
             "triage",
             "enricher",
             "correlator",
+            "responder",
         ]
         agents = []
         for name in order:
@@ -66,9 +70,71 @@ class SupervisorAgent:
                 })
         return response
 
+    def _parse_structured_output(self, value: Any) -> Dict[str, Any] | None:
+        """Attempt to coerce *value* returned from an agent into a dictionary."""
+
+        if isinstance(value, dict):
+            return value
+        if not isinstance(value, str):
+            return None
+        content = value.strip()
+        if not content:
+            return None
+        if content.startswith("```"):
+            lines = content.splitlines()
+            if lines:
+                lines = lines[1:]
+            if lines and lines[0].strip().lower() == "json":
+                lines = lines[1:]
+            while lines and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            content = "\n".join(lines).strip()
+        try:
+            parsed = json.loads(content)
+        except json.JSONDecodeError:
+            self.logger.debug("Failed to decode JSON from responder output: %s", content)
+            return None
+        return parsed if isinstance(parsed, dict) else None
+
+    def _normalise_action(self, candidate: Any) -> Dict[str, Any] | None:
+        """Normalise a single *candidate* action into the expected mapping."""
+
+        if isinstance(candidate, dict):
+            action_type = candidate.get("type")
+            if action_type:
+                payload = {"type": action_type}
+                for key in ("channel", "reason", "summary", "system", "endpoint", "message", "parameters"):
+                    if key in candidate:
+                        payload[key] = candidate[key]
+                if "reason" not in payload and candidate.get("justification"):
+                    payload["reason"] = candidate["justification"]
+                return payload
+            if "action" in candidate and isinstance(candidate["action"], str):
+                return {"type": candidate["action"], **{k: v for k, v in candidate.items() if k != "action"}}
+        if isinstance(candidate, str) and candidate.strip():
+            return {"type": candidate.strip()}
+        return None
+
     def decide_actions(self, enriched_alert: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Determine follow-up actions based on thresholds."""
+        """Determine follow-up actions using responder output with severity fallback."""
+
         actions: List[Dict[str, Any]] = []
+        responder = enriched_alert.get("ai", {}).get("responder")
+        parsed = self._parse_structured_output(responder)
+        if parsed:
+            raw_actions = parsed.get("actions") if isinstance(parsed.get("actions"), list) else None
+            if raw_actions:
+                for candidate in raw_actions:
+                    normalised = self._normalise_action(candidate)
+                    if normalised:
+                        actions.append(normalised)
+            elif parsed:
+                normalised = self._normalise_action(parsed)
+                if normalised:
+                    actions.append(normalised)
+        if actions:
+            return actions
+
         severity = (
             enriched_alert.get("ai", {})
             .get("triage", {})
@@ -92,3 +158,17 @@ class SupervisorAgent:
             if levels.index(severity_key.lower()) >= levels.index(threshold.lower()):
                 actions.append({"type": "notify", "channel": "security_ops"})
         return actions
+
+    def execute_actions(self, actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Execute *actions* via :class:`ActionExecutor` and return serialisable results."""
+
+        if not actions:
+            return []
+        executor = ActionExecutor(
+            config=self.config.get("actions", {}),
+            logger=self.logger,
+        )
+        results: List[Dict[str, Any]] = []
+        for result in executor.execute_many(actions):
+            results.append(result.to_dict())
+        return results
