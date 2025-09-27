@@ -11,5 +11,7 @@ def run_pipeline(alert: Dict[str, Any], config_path: str | None = None) -> Dict[
     config = load_ai_config(config_path)
     supervisor = SupervisorAgent(config)
     enriched = supervisor.run(alert)
-    enriched["ai_actions"] = supervisor.decide_actions(enriched)
+    actions = supervisor.decide_actions(enriched)
+    enriched["ai_actions"] = actions
+    enriched["ai_action_results"] = supervisor.execute_actions(actions)
     return enriched
