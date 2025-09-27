@@ -44,7 +44,7 @@ class BaseAIChainAgent:
         cfg = self.context.config.get(self.name, {})
         provider = cfg.get("provider", provider)
         model = cfg.get("model", model)
-        client = build_client(provider, model)
+        client = build_client(provider, model, settings=cfg)
         if client is None:
             raise APIClientError(f"Unsupported AI provider '{provider}' for agent {self.name}")
         self.client = client

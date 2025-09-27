@@ -34,24 +34,34 @@ containment workflows.
 
 ## Getting Started
 
-1. **Install dependencies** – Refer to `framework/requirements.txt` for Python dependencies,
-   including LangChain-ready HTTP clients for OpenAI and Grok.
-2. **Configure API keys** – Export your API keys before starting the manager services:
+1. **Create an isolated Python environment** – `python3 -m venv .venv && source .venv/bin/activate`
+2. **Install dependencies** – `pip install -r framework/requirements.txt`
+3. **Bootstrap configuration** – Generate a starter AI config (add `--offline` for demo mode):
+
+   ```bash
+   python -m ai_agents bootstrap --path etc/ai_config.yaml
+   ```
+
+4. **Run environment checks** – Verify required API keys and packages:
+
+   ```bash
+   python -m ai_agents doctor
+   ```
+
+5. **Provide API credentials** – Export OpenAI and Grok credentials before using live providers:
 
    ```bash
    export OPENAI_API_KEY="sk-..."
    export GROK_API_KEY="grok-..."
    ```
 
-3. **Review AI configuration** – Edit `etc/ai_config.yaml` to customise models, prompts, and
-   action thresholds.
-4. **Run the simulator** – Validate your configuration with the sample alert runner:
+6. **Simulate the pipeline** – Enrich a sample alert (add `--offline` to avoid external calls):
 
    ```bash
-   python3 extensions/ai/simulate_alert.py
+   python -m ai_agents run extensions/ai/sample_alert.json --pretty
    ```
 
-5. **Deploy** – Launch the manager and agents as you would with traditional deployments.
+7. **Deploy** – Launch the manager and agents as you would with traditional deployments.
    New AI insights will appear in stored alerts and in dashboard visualisations.
 
 ## Documentation

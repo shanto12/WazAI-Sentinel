@@ -1,8 +1,9 @@
 """API clients used by the WazAI Sentinel AI agents."""
 from __future__ import annotations
 
+import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 try:
     import requests
@@ -86,10 +87,38 @@ class GrokClient:
         return data["choices"][0]["message"]["content"].strip()
 
 
-def build_client(provider: str, model: str) -> Optional[object]:
+class StaticResponseClient:
+    """Deterministic client used for offline demonstrations and tests."""
+
+    def __init__(self, model: str, settings: Mapping[str, Any] | None = None) -> None:
+        self.model = model
+        self.settings = dict(settings or {})
+
+    def complete(self, prompt: str, *, temperature: float = 0.1) -> str:  # noqa: ARG002 - parity
+        if "response" in self.settings:
+            payload = self.settings["response"]
+            if isinstance(payload, (dict, list)):
+                return json.dumps(payload)
+            if isinstance(payload, str):
+                return payload.format(prompt=prompt)
+        summary = {
+            "model": self.model,
+            "prompt_tokens": len(prompt),
+        }
+        if self.settings.get("echo_prompt"):
+            summary["prompt"] = prompt
+        return json.dumps(summary)
+
+
+def build_client(
+    provider: str, model: str, *, settings: Mapping[str, Any] | None = None
+) -> Optional[object]:
     """Factory returning the correct API client for *provider*."""
-    if provider.lower() == "openai":
+    provider_key = provider.lower()
+    if provider_key == "openai":
         return OpenAIClient(model)
-    if provider.lower() == "grok":
+    if provider_key == "grok":
         return GrokClient(model)
+    if provider_key in {"mock", "static", "offline"}:
+        return StaticResponseClient(model, settings)
     return None

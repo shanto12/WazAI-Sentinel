@@ -11,10 +11,16 @@ AI pipeline with external systems.
 
 ## Usage
 
-Export valid API keys before running the simulator:
+Export valid API keys before running the simulator (or use `--offline` to avoid remote calls):
 
 ```bash
 export OPENAI_API_KEY=your_openai_key
 export GROK_API_KEY=your_grok_key
-python3 extensions/ai/simulate_alert.py
+python -m ai_agents run extensions/ai/sample_alert.json --pretty
+```
+
+You can still run the original helper script directly:
+
+```bash
+python3 extensions/ai/simulate_alert.py --offline
 ```

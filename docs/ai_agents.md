@@ -71,6 +71,16 @@ export OPENAI_API_KEY="sk-..."
 export GROK_API_KEY="grok-..."
 ```
 
+### Tooling
+
+- `python -m ai_agents bootstrap` – Generate a starter `ai_config.yaml`
+  (add `--offline` for deterministic mock responses).
+- `python -m ai_agents doctor` – Validate configuration structure, API keys,
+  and optional Python dependencies.
+- `python -m ai_agents run <alert.json>` – Execute the pipeline for a given
+  alert payload. Combine with `--offline` to exercise the workflow without
+  external API calls.
+
 ## Error Handling
 
 - Missing API keys raise `APIClientError` and are recorded in the enriched alert payload under
