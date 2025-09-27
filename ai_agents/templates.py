@@ -13,31 +13,31 @@ DEFAULT_CONFIG_TEMPLATE: Dict[str, Any] = {
     "agents": {
         "investigator": {
             "provider": "openai",
-            "model": "gpt-4o",
+            "model": "gpt-4.1",
             "prompt": (
                 "You are WazAI Sentinel's Investigator. Evaluate the alert data below and return "
                 "JSON with keys summary, findings, risk. Use concise bullet lists. Data: {data}"
             ),
         },
         "triage": {
-            "provider": "grok",
-            "model": "grok-beta",
+            "provider": "anthropic",
+            "model": "claude-3.5-sonnet",
             "prompt": (
                 "Determine severity (high/medium/low) and justification as JSON with keys "
                 "severity and justification. Data: {data}"
             ),
         },
         "enricher": {
-            "provider": "openai",
-            "model": "gpt-4o",
+            "provider": "google",
+            "model": "gemini-1.5-pro",
             "prompt": (
                 "Provide contextual threat intelligence, recommended response steps, and references. "
                 "Return JSON with keys intel, actions, references. Data: {data}"
             ),
         },
         "correlator": {
-            "provider": "openai",
-            "model": "gpt-4o",
+            "provider": "grok",
+            "model": "grok-2",
             "prompt": (
                 "Correlate the alert with historical events, highlighting related incident IDs or tactics. "
                 "Return JSON keys correlations and notes. Data: {data}"
@@ -45,7 +45,7 @@ DEFAULT_CONFIG_TEMPLATE: Dict[str, Any] = {
         },
         "responder": {
             "provider": "openai",
-            "model": "gpt-4o",
+            "model": "gpt-4.1-mini",
             "prompt": (
                 "Provide an incident response action plan that aligns with organisational playbooks. "
                 "Return JSON with keys actions (list of objects with type, reason, and parameters) "
