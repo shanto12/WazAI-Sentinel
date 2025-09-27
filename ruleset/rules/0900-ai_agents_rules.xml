@@ -1,0 +1,16 @@
+<group name="wazai-ai">
+  <rule id="999900" level="3">
+    <decoded_as>wazai-ai-pipeline</decoded_as>
+    <description>WazAI Sentinel AI pipeline trigger</description>
+    <mitre>
+      <id>T1059</id>
+      <id>T1078</id>
+    </mitre>
+    <options>
+      <option>no_full_log</option>
+    </options>
+    <response>
+      <command>wazai-ai-pipeline</command>
+    </response>
+  </rule>
+</group>

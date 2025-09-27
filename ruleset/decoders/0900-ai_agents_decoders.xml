@@ -1,0 +1,5 @@
+<decoder name="wazai-ai-pipeline">
+  <program_name>ai_pipeline</program_name>
+  <type>json</type>
+  <prematch>ai_pipeline_trigger</prematch>
+</decoder>

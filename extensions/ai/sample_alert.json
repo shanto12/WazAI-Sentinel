@@ -1,0 +1,16 @@
+{
+  "id": "alert-001",
+  "rule": {
+    "id": "100001",
+    "description": "Suspicious authentication attempt"
+  },
+  "agent": {
+    "name": "linux-agent-01",
+    "ip": "192.0.2.10"
+  },
+  "data": {
+    "srcip": "198.51.100.23",
+    "user": "admin",
+    "status": "failed"
+  }
+}
